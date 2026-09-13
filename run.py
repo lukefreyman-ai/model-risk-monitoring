@@ -62,7 +62,7 @@ def main(argv=None) -> None:
             "max_score_psi": float(p.score_psi.max()), "elapsed_seconds": round(time.time() - t0, 1)}
     (out / "metrics.json").write_text(json.dumps(meta, indent=1))
     print(f"\noverall: {rag}"); [print(f"  {f['severity']:6} {f['text']}") for f in meta["findings"]]
-    print(f"report: {path}  ({meta['elapsed_seconds']}s)")
+    print(f"report: {path.relative_to(ROOT) if path.is_relative_to(ROOT) else path}  ({meta['elapsed_seconds']}s)")
 
 
 if __name__ == "__main__":

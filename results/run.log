@@ -24,4 +24,4 @@ overall: RED
   LOW    Champion KS stays above 0.3 (range 0.517-0.555); Gini relative drop vs development at most 7.1 %.
   LOW    Portfolio-level calibration holds: |actual - predicted| default rate <= 2 pp in every window.
   INFO   Challenger (gradient boosting) Gini exceeds the champion by 2.8 pts on average (+0.9 to +8.1) and its relative decay across windows is 14.4 % vs 7.1 % for the champion. Lift alone does not justify replacement: the challenger is not reason-code explainable and would need a full validation cycle.
-report: /Users/lukefreyman/Desktop/model-risk-monitoring/results/validation_report.html  (21.0s)
+report: results/validation_report.html  (21.2s)
