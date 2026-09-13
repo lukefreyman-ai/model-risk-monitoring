@@ -1,0 +1,39 @@
+{
+ "dataset": "GMSC cs-training.csv",
+ "rows": 123045,
+ "windows": {
+  "dev": 59819,
+  "Q1": 18171,
+  "Q2": 15716,
+  "Q3": 12603,
+  "Q4": 9467,
+  "Q5": 7269
+ },
+ "overall_rag": "RED",
+ "findings": [
+  {
+   "severity": "HIGH",
+   "text": "Score PSI reaches 0.356 in Q5 (> 0.25): the scored population has shifted materially from development. Investigate acquisition mix before trusting cut-offs."
+  },
+  {
+   "severity": "MEDIUM",
+   "text": "Characteristic drift: 3 feature-window pairs breach CSI 0.1; largest is util in Q5 (CSI 0.403). These characteristics drive the score shift."
+  },
+  {
+   "severity": "LOW",
+   "text": "Champion KS stays above 0.3 (range 0.517-0.555); Gini relative drop vs development at most 7.1 %."
+  },
+  {
+   "severity": "LOW",
+   "text": "Portfolio-level calibration holds: |actual - predicted| default rate <= 2 pp in every window."
+  },
+  {
+   "severity": "INFO",
+   "text": "Challenger (gradient boosting) Gini exceeds the champion by 2.8 pts on average (+0.9 to +8.1) and its relative decay across windows is 14.4 % vs 7.1 % for the champion. Lift alone does not justify replacement: the challenger is not reason-code explainable and would need a full validation cycle."
+  }
+ ],
+ "dev_gini": 0.7164238310469382,
+ "dev_ks": 0.5552531986478072,
+ "max_score_psi": 0.35630362651212827,
+ "elapsed_seconds": 21.0
+}

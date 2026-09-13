@@ -1,0 +1,27 @@
+rows=123,045 bad rate=7.568% windows={0: np.int64(59819), 1: np.int64(18171), 2: np.int64(15716), 3: np.int64(12603), 4: np.int64(9467), 5: np.int64(7269)}
+window     n  bad_rate  champion_ks  champion_gini  challenger_gini  score_psi psi_rag  avg_pd  actual_minus_predicted calibration_rag
+   dev 59819    0.0678       0.5553         0.7164           0.7972     0.0000   GREEN  0.0678                 -0.0000           GREEN
+    Q1 18171    0.0686       0.5552         0.7053           0.7290     0.0005   GREEN  0.0680                  0.0006           GREEN
+    Q2 15716    0.0704       0.5388         0.6969           0.7175     0.0074   GREEN  0.0729                 -0.0024           GREEN
+    Q3 12603    0.0802       0.5216         0.6780           0.6873     0.0441   GREEN  0.0827                 -0.0025           GREEN
+    Q4  9467    0.1051       0.5170         0.6778           0.6957     0.1713   AMBER  0.1008                  0.0043           GREEN
+    Q5  7269    0.1235       0.5184         0.6659           0.6823     0.3563     RED  0.1187                  0.0048           GREEN
+
+CSI (feature x window):
+window      Q1     Q2     Q3     Q4     Q5  dev
+feature                                        
+age        0.0  0.003  0.017  0.051  0.103  0.0
+debtratio  0.0  0.000  0.003  0.003  0.006  0.0
+income     0.0  0.000  0.002  0.002  0.011  0.0
+late30     0.0  0.001  0.002  0.014  0.026  0.0
+late60     0.0  0.000  0.002  0.008  0.020  0.0
+late90     0.0  0.000  0.003  0.012  0.032  0.0
+util       0.0  0.008  0.047  0.195  0.403  0.0
+
+overall: RED
+  HIGH   Score PSI reaches 0.356 in Q5 (> 0.25): the scored population has shifted materially from development. Investigate acquisition mix before trusting cut-offs.
+  MEDIUM Characteristic drift: 3 feature-window pairs breach CSI 0.1; largest is util in Q5 (CSI 0.403). These characteristics drive the score shift.
+  LOW    Champion KS stays above 0.3 (range 0.517-0.555); Gini relative drop vs development at most 7.1 %.
+  LOW    Portfolio-level calibration holds: |actual - predicted| default rate <= 2 pp in every window.
+  INFO   Challenger (gradient boosting) Gini exceeds the champion by 2.8 pts on average (+0.9 to +8.1) and its relative decay across windows is 14.4 % vs 7.1 % for the champion. Lift alone does not justify replacement: the challenger is not reason-code explainable and would need a full validation cycle.
+report: /Users/lukefreyman/Desktop/model-risk-monitoring/results/validation_report.html  (21.0s)

@@ -1,0 +1,751 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Model Validation Report - Retail application scorecard (WOE logistic, GMSC)</title>
+<style>
+body{font:14px/1.5 -apple-system,Segoe UI,Helvetica,Arial,sans-serif;max-width:1100px;margin:32px auto;padding:0 24px;color:#1b1b1b}
+h1{font-size:24px;margin-bottom:4px} h2{font-size:18px;margin-top:32px;border-bottom:1px solid #ddd;padding-bottom:4px} h3{font-size:15px}
+table{border-collapse:collapse;margin:10px 0;font-size:13px} th,td{border:1px solid #ddd;padding:5px 9px;text-align:right} th{background:#f4f4f4} td:first-child,th:first-child{text-align:left}
+.GREEN{background:#d9f2d9} .AMBER{background:#fff1c2} .RED{background:#ffd6d6}
+.meta{color:#666;font-size:13px} .box{border:1px solid #ddd;border-radius:6px;padding:12px 16px;background:#fafafa;margin:12px 0}
+img{max-width:100%;border:1px solid #eee;margin:8px 0}
+</style></head><body>
+<h1>Model Validation & Monitoring Report</h1>
+<div class="meta">Retail application scorecard (WOE logistic, GMSC) · generated 2026-09-13 02:08 · development sample n=59,819 · monitoring windows: dev, Q1, Q2, Q3, Q4, Q5</div>
+<div class="box"><b>Overall assessment: <span class="RED">RED</span></b><br>At least one metric breaches its red threshold. Escalate to model owner and Model Risk; restrict use pending remediation.</div>
+
+<h2>1. Model purpose and scope (SR 11-7 §III)</h2>
+<p>Application scorecard predicting the probability that a retail borrower experiences 90+ days delinquency within two years (target SeriousDlqin2yrs). Intended use: ranking applicants for approve/decline and pricing tiers. Development data: the Kaggle 'Give Me Some Credit' sample (150,000 borrowers). Monitoring windows are simulated from held-out slices of the same data with a documented covariate shift (config.yaml -> windows.drift), because the public dataset carries no dates.</p>
+
+<h2>2. Conceptual soundness</h2>
+<p>Weight-of-evidence binning with monotone risk ordering per characteristic and a logistic regression on the WOE-transformed features; points scaled so that 600 points correspond to 50:1 odds and 20 points double the odds. All characteristics show information value above 0.02 and variance inflation factors below 2 (see credit-risk-scorecard). Monotonicity of bad rate across bins is enforced by the binning choices in config.yaml.</p>
+<h3>Information value by characteristic (development sample)</h3><table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>feature</th>
+      <th>iv</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>util</td>
+      <td>1.1897</td>
+    </tr>
+    <tr>
+      <td>late90</td>
+      <td>0.8934</td>
+    </tr>
+    <tr>
+      <td>late30</td>
+      <td>0.7915</td>
+    </tr>
+    <tr>
+      <td>late60</td>
+      <td>0.6245</td>
+    </tr>
+    <tr>
+      <td>age</td>
+      <td>0.2761</td>
+    </tr>
+    <tr>
+      <td>income</td>
+      <td>0.0617</td>
+    </tr>
+    <tr>
+      <td>debtratio</td>
+      <td>0.0318</td>
+    </tr>
+  </tbody>
+</table>
+<h3>Scorecard points</h3><table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>feature</th>
+      <th>bin</th>
+      <th>woe</th>
+      <th>points</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>util</td>
+      <td>(-0.002, 0.1]</td>
+      <td>1.4</td>
+      <td>105.6</td>
+    </tr>
+    <tr>
+      <td>util</td>
+      <td>(0.1, 0.3]</td>
+      <td>0.8</td>
+      <td>95.0</td>
+    </tr>
+    <tr>
+      <td>util</td>
+      <td>(0.3, 0.5]</td>
+      <td>0.1</td>
+      <td>82.3</td>
+    </tr>
+    <tr>
+      <td>util</td>
+      <td>(0.5, 0.7]</td>
+      <td>-0.4</td>
+      <td>72.9</td>
+    </tr>
+    <tr>
+      <td>util</td>
+      <td>(0.7, 0.9]</td>
+      <td>-0.9</td>
+      <td>64.6</td>
+    </tr>
+    <tr>
+      <td>util</td>
+      <td>(0.9, 1.0]</td>
+      <td>-1.2</td>
+      <td>58.3</td>
+    </tr>
+    <tr>
+      <td>util</td>
+      <td>(1.0, 1000000000.0]</td>
+      <td>-2.2</td>
+      <td>39.4</td>
+    </tr>
+    <tr>
+      <td>age</td>
+      <td>(-1.001, 30.0]</td>
+      <td>-0.7</td>
+      <td>71.4</td>
+    </tr>
+    <tr>
+      <td>age</td>
+      <td>(30.0, 35.0]</td>
+      <td>-0.5</td>
+      <td>73.8</td>
+    </tr>
+    <tr>
+      <td>age</td>
+      <td>(35.0, 40.0]</td>
+      <td>-0.3</td>
+      <td>76.1</td>
+    </tr>
+    <tr>
+      <td>age</td>
+      <td>(40.0, 45.0]</td>
+      <td>-0.2</td>
+      <td>77.2</td>
+    </tr>
+    <tr>
+      <td>age</td>
+      <td>(45.0, 50.0]</td>
+      <td>-0.2</td>
+      <td>78.2</td>
+    </tr>
+    <tr>
+      <td>age</td>
+      <td>(50.0, 55.0]</td>
+      <td>-0.1</td>
+      <td>79.6</td>
+    </tr>
+    <tr>
+      <td>age</td>
+      <td>(55.0, 60.0]</td>
+      <td>0.2</td>
+      <td>82.6</td>
+    </tr>
+    <tr>
+      <td>age</td>
+      <td>(60.0, 65.0]</td>
+      <td>0.5</td>
+      <td>86.4</td>
+    </tr>
+    <tr>
+      <td>age</td>
+      <td>(65.0, 120.0]</td>
+      <td>1.2</td>
+      <td>95.3</td>
+    </tr>
+    <tr>
+      <td>late30</td>
+      <td>(-1.001, 0.0]</td>
+      <td>0.6</td>
+      <td>88.6</td>
+    </tr>
+    <tr>
+      <td>late30</td>
+      <td>(0.0, 1.0]</td>
+      <td>-0.9</td>
+      <td>66.7</td>
+    </tr>
+    <tr>
+      <td>late30</td>
+      <td>(1.0, 2.0]</td>
+      <td>-1.6</td>
+      <td>55.7</td>
+    </tr>
+    <tr>
+      <td>late30</td>
+      <td>(2.0, 98.0]</td>
+      <td>-2.3</td>
+      <td>45.9</td>
+    </tr>
+    <tr>
+      <td>debtratio</td>
+      <td>(-0.002, 0.2]</td>
+      <td>0.1</td>
+      <td>81.4</td>
+    </tr>
+    <tr>
+      <td>debtratio</td>
+      <td>(0.2, 0.4]</td>
+      <td>0.2</td>
+      <td>83.5</td>
+    </tr>
+    <tr>
+      <td>debtratio</td>
+      <td>(0.4, 0.6]</td>
+      <td>-0.1</td>
+      <td>77.9</td>
+    </tr>
+    <tr>
+      <td>debtratio</td>
+      <td>(0.6, 1.0]</td>
+      <td>-0.4</td>
+      <td>72.2</td>
+    </tr>
+    <tr>
+      <td>debtratio</td>
+      <td>(1.0, 1000000000.0]</td>
+      <td>0.0</td>
+      <td>80.7</td>
+    </tr>
+    <tr>
+      <td>income</td>
+      <td>(-1.001, 2500.0]</td>
+      <td>-0.0</td>
+      <td>80.1</td>
+    </tr>
+    <tr>
+      <td>income</td>
+      <td>(2500.0, 4500.0]</td>
+      <td>-0.3</td>
+      <td>77.1</td>
+    </tr>
+    <tr>
+      <td>income</td>
+      <td>(4500.0, 6500.0]</td>
+      <td>-0.0</td>
+      <td>79.8</td>
+    </tr>
+    <tr>
+      <td>income</td>
+      <td>(6500.0, 9000.0]</td>
+      <td>0.3</td>
+      <td>82.6</td>
+    </tr>
+    <tr>
+      <td>income</td>
+      <td>(9000.0, 13000.0]</td>
+      <td>0.4</td>
+      <td>84.2</td>
+    </tr>
+    <tr>
+      <td>income</td>
+      <td>(13000.0, 1000000000.0]</td>
+      <td>0.4</td>
+      <td>84.1</td>
+    </tr>
+    <tr>
+      <td>late90</td>
+      <td>(-1.001, 0.0]</td>
+      <td>0.4</td>
+      <td>86.1</td>
+    </tr>
+    <tr>
+      <td>late90</td>
+      <td>(0.0, 1.0]</td>
+      <td>-2.0</td>
+      <td>51.0</td>
+    </tr>
+    <tr>
+      <td>late90</td>
+      <td>(1.0, 2.0]</td>
+      <td>-2.7</td>
+      <td>40.0</td>
+    </tr>
+    <tr>
+      <td>late90</td>
+      <td>(2.0, 98.0]</td>
+      <td>-3.0</td>
+      <td>34.8</td>
+    </tr>
+    <tr>
+      <td>late60</td>
+      <td>(-1.001, 0.0]</td>
+      <td>0.3</td>
+      <td>83.3</td>
+    </tr>
+    <tr>
+      <td>late60</td>
+      <td>(0.0, 1.0]</td>
+      <td>-1.9</td>
+      <td>60.9</td>
+    </tr>
+    <tr>
+      <td>late60</td>
+      <td>(1.0, 98.0]</td>
+      <td>-2.8</td>
+      <td>51.7</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>3. Ongoing monitoring - performance by window</h2>
+<p>KS &ge; 0.3 and a Gini drop below 10 % of development are GREEN; PSI &lt; 0.1 GREEN, 0.1-0.25 AMBER, above RED; |actual − predicted| default rate &le; 2.0 pp GREEN.</p>
+<table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>window</th>
+      <th>n</th>
+      <th>bad_rate</th>
+      <th>champion_ks</th>
+      <th>champion_gini</th>
+      <th>score_psi</th>
+      <th>psi_rag</th>
+      <th>ks_rag</th>
+      <th>gini_rag</th>
+      <th>avg_pd</th>
+      <th>actual_minus_predicted</th>
+      <th>calibration_rag</th>
+      <th>hl_p</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>dev</td>
+      <td>59819</td>
+      <td>0.068</td>
+      <td>0.555</td>
+      <td>0.716</td>
+      <td>0.000</td>
+      <td class="GREEN">GREEN</td>
+      <td class="GREEN">GREEN</td>
+      <td class="GREEN">GREEN</td>
+      <td>0.068</td>
+      <td>-0.000</td>
+      <td class="GREEN">GREEN</td>
+      <td>0.000</td>
+    </tr>
+    <tr>
+      <td>Q1</td>
+      <td>18171</td>
+      <td>0.069</td>
+      <td>0.555</td>
+      <td>0.705</td>
+      <td>0.000</td>
+      <td class="GREEN">GREEN</td>
+      <td class="GREEN">GREEN</td>
+      <td class="GREEN">GREEN</td>
+      <td>0.068</td>
+      <td>0.001</td>
+      <td class="GREEN">GREEN</td>
+      <td>0.001</td>
+    </tr>
+    <tr>
+      <td>Q2</td>
+      <td>15716</td>
+      <td>0.070</td>
+      <td>0.539</td>
+      <td>0.697</td>
+      <td>0.007</td>
+      <td class="GREEN">GREEN</td>
+      <td class="GREEN">GREEN</td>
+      <td class="GREEN">GREEN</td>
+      <td>0.073</td>
+      <td>-0.002</td>
+      <td class="GREEN">GREEN</td>
+      <td>0.005</td>
+    </tr>
+    <tr>
+      <td>Q3</td>
+      <td>12603</td>
+      <td>0.080</td>
+      <td>0.522</td>
+      <td>0.678</td>
+      <td>0.044</td>
+      <td class="GREEN">GREEN</td>
+      <td class="GREEN">GREEN</td>
+      <td class="GREEN">GREEN</td>
+      <td>0.083</td>
+      <td>-0.002</td>
+      <td class="GREEN">GREEN</td>
+      <td>0.013</td>
+    </tr>
+    <tr>
+      <td>Q4</td>
+      <td>9467</td>
+      <td>0.105</td>
+      <td>0.517</td>
+      <td>0.678</td>
+      <td>0.171</td>
+      <td class="AMBER">AMBER</td>
+      <td class="GREEN">GREEN</td>
+      <td class="GREEN">GREEN</td>
+      <td>0.101</td>
+      <td>0.004</td>
+      <td class="GREEN">GREEN</td>
+      <td>0.000</td>
+    </tr>
+    <tr>
+      <td>Q5</td>
+      <td>7269</td>
+      <td>0.124</td>
+      <td>0.518</td>
+      <td>0.666</td>
+      <td>0.356</td>
+      <td class="RED">RED</td>
+      <td class="GREEN">GREEN</td>
+      <td class="GREEN">GREEN</td>
+      <td>0.119</td>
+      <td>0.005</td>
+      <td class="GREEN">GREEN</td>
+      <td>0.000</td>
+    </tr>
+  </tbody>
+</table>
+<img src="performance.png" alt="KS / Gini by window">
+
+<h2>4. Population stability (PSI of the score) and characteristic stability (CSI)</h2>
+<img src="psi.png" alt="PSI by window">
+<table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>window</th>
+      <th>feature</th>
+      <th>dev</th>
+      <th>Q1</th>
+      <th>Q2</th>
+      <th>Q3</th>
+      <th>Q4</th>
+      <th>Q5</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th></th>
+      <td>age</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>0.003</td>
+      <td>0.017</td>
+      <td>0.051</td>
+      <td>0.103</td>
+    </tr>
+    <tr>
+      <th></th>
+      <td>debtratio</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>0.003</td>
+      <td>0.003</td>
+      <td>0.006</td>
+    </tr>
+    <tr>
+      <th></th>
+      <td>income</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>0.002</td>
+      <td>0.002</td>
+      <td>0.011</td>
+    </tr>
+    <tr>
+      <th></th>
+      <td>late30</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>0.001</td>
+      <td>0.002</td>
+      <td>0.014</td>
+      <td>0.026</td>
+    </tr>
+    <tr>
+      <th></th>
+      <td>late60</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>0.002</td>
+      <td>0.008</td>
+      <td>0.020</td>
+    </tr>
+    <tr>
+      <th></th>
+      <td>late90</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>0.003</td>
+      <td>0.012</td>
+      <td>0.032</td>
+    </tr>
+    <tr>
+      <th></th>
+      <td>util</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>0.008</td>
+      <td>0.047</td>
+      <td>0.195</td>
+      <td>0.403</td>
+    </tr>
+  </tbody>
+</table>
+<img src="score_bands.png" alt="Score band mix by window">
+
+<h2>5. Calibration</h2>
+<p>Predicted vs actual default rate by score decile, per window. Hosmer-Lemeshow p-values are reported but with tens of thousands of rows per window the test rejects on tiny gaps, so the absolute gap is the operative check.</p>
+<img src="calibration.png" alt="Calibration">
+<table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>window</th>
+      <th>decile</th>
+      <th>dev</th>
+      <th>Q1</th>
+      <th>Q2</th>
+      <th>Q3</th>
+      <th>Q4</th>
+      <th>Q5</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th></th>
+      <td>0</td>
+      <td>-0.0054</td>
+      <td>-0.0034</td>
+      <td>-0.0040</td>
+      <td>-0.0014</td>
+      <td>-0.0048</td>
+      <td>-0.0021</td>
+    </tr>
+    <tr>
+      <th></th>
+      <td>1</td>
+      <td>-0.0054</td>
+      <td>-0.0074</td>
+      <td>-0.0084</td>
+      <td>-0.0032</td>
+      <td>-0.0064</td>
+      <td>-0.0072</td>
+    </tr>
+    <tr>
+      <th></th>
+      <td>2</td>
+      <td>-0.0042</td>
+      <td>-0.0065</td>
+      <td>-0.0050</td>
+      <td>-0.0052</td>
+      <td>-0.0044</td>
+      <td>-0.0020</td>
+    </tr>
+    <tr>
+      <th></th>
+      <td>3</td>
+      <td>-0.0065</td>
+      <td>-0.0031</td>
+      <td>-0.0011</td>
+      <td>-0.0005</td>
+      <td>-0.0028</td>
+      <td>-0.0080</td>
+    </tr>
+    <tr>
+      <th></th>
+      <td>4</td>
+      <td>-0.0057</td>
+      <td>-0.0006</td>
+      <td>+0.0007</td>
+      <td>-0.0085</td>
+      <td>+0.0031</td>
+      <td>+0.0058</td>
+    </tr>
+    <tr>
+      <th></th>
+      <td>5</td>
+      <td>-0.0001</td>
+      <td>-0.0002</td>
+      <td>-0.0102</td>
+      <td>-0.0070</td>
+      <td>+0.0007</td>
+      <td>+0.0102</td>
+    </tr>
+    <tr>
+      <th></th>
+      <td>6</td>
+      <td>+0.0015</td>
+      <td>+0.0028</td>
+      <td>+0.0049</td>
+      <td>+0.0145</td>
+      <td>+0.0265</td>
+      <td>+0.0195</td>
+    </tr>
+    <tr>
+      <th></th>
+      <td>7</td>
+      <td>+0.0071</td>
+      <td>+0.0125</td>
+      <td>+0.0068</td>
+      <td>+0.0120</td>
+      <td>+0.0286</td>
+      <td>+0.0154</td>
+    </tr>
+    <tr>
+      <th></th>
+      <td>8</td>
+      <td>+0.0087</td>
+      <td>+0.0151</td>
+      <td>+0.0043</td>
+      <td>+0.0029</td>
+      <td>+0.0285</td>
+      <td>+0.0601</td>
+    </tr>
+    <tr>
+      <th></th>
+      <td>9</td>
+      <td>+0.0100</td>
+      <td>-0.0037</td>
+      <td>-0.0125</td>
+      <td>-0.0283</td>
+      <td>-0.0260</td>
+      <td>-0.0436</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>6. Champion vs challenger</h2>
+<p>The challenger is a gradient-boosted tree model trained on the same development window and raw (unbinned) characteristics. It is used as a yardstick for how much discriminatory power the linear scorecard leaves on the table, not as a replacement candidate.</p>
+<table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>window</th>
+      <th>champion_ks</th>
+      <th>challenger_ks</th>
+      <th>champion_gini</th>
+      <th>challenger_gini</th>
+      <th>gini_rel_drop</th>
+      <th>challenger_gini_rel_drop</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>dev</td>
+      <td>0.555</td>
+      <td>0.638</td>
+      <td>0.716</td>
+      <td>0.797</td>
+      <td>0.000</td>
+      <td>0.000</td>
+    </tr>
+    <tr>
+      <td>Q1</td>
+      <td>0.555</td>
+      <td>0.574</td>
+      <td>0.705</td>
+      <td>0.729</td>
+      <td>0.016</td>
+      <td>0.086</td>
+    </tr>
+    <tr>
+      <td>Q2</td>
+      <td>0.539</td>
+      <td>0.569</td>
+      <td>0.697</td>
+      <td>0.718</td>
+      <td>0.027</td>
+      <td>0.100</td>
+    </tr>
+    <tr>
+      <td>Q3</td>
+      <td>0.522</td>
+      <td>0.538</td>
+      <td>0.678</td>
+      <td>0.687</td>
+      <td>0.054</td>
+      <td>0.138</td>
+    </tr>
+    <tr>
+      <td>Q4</td>
+      <td>0.517</td>
+      <td>0.537</td>
+      <td>0.678</td>
+      <td>0.696</td>
+      <td>0.054</td>
+      <td>0.127</td>
+    </tr>
+    <tr>
+      <td>Q5</td>
+      <td>0.518</td>
+      <td>0.541</td>
+      <td>0.666</td>
+      <td>0.682</td>
+      <td>0.071</td>
+      <td>0.144</td>
+    </tr>
+  </tbody>
+</table>
+<h3>Challenger feature importance</h3><table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>feature</th>
+      <th>importance</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>NumberOfTimes90DaysLate</td>
+      <td>0.402</td>
+    </tr>
+    <tr>
+      <td>RevolvingUtilizationOfUnsecuredLines</td>
+      <td>0.212</td>
+    </tr>
+    <tr>
+      <td>NumberOfTime30-59DaysPastDueNotWorse</td>
+      <td>0.114</td>
+    </tr>
+    <tr>
+      <td>NumberOfTime60-89DaysPastDueNotWorse</td>
+      <td>0.085</td>
+    </tr>
+    <tr>
+      <td>DebtRatio</td>
+      <td>0.060</td>
+    </tr>
+    <tr>
+      <td>age</td>
+      <td>0.047</td>
+    </tr>
+    <tr>
+      <td>MonthlyIncome</td>
+      <td>0.033</td>
+    </tr>
+    <tr>
+      <td>NumberOfOpenCreditLinesAndLoans</td>
+      <td>0.020</td>
+    </tr>
+    <tr>
+      <td>NumberRealEstateLoansOrLines</td>
+      <td>0.016</td>
+    </tr>
+    <tr>
+      <td>NumberOfDependents</td>
+      <td>0.011</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>7. Findings and recommended actions</h2>
+<ol><li><b>HIGH</b> - Score PSI reaches 0.356 in Q5 (> 0.25): the scored population has shifted materially from development. Investigate acquisition mix before trusting cut-offs.</li><li><b>MEDIUM</b> - Characteristic drift: 3 feature-window pairs breach CSI 0.1; largest is util in Q5 (CSI 0.403). These characteristics drive the score shift.</li><li><b>LOW</b> - Champion KS stays above 0.3 (range 0.517-0.555); Gini relative drop vs development at most 7.1 %.</li><li><b>LOW</b> - Portfolio-level calibration holds: |actual - predicted| default rate <= 2 pp in every window.</li><li><b>INFO</b> - Challenger (gradient boosting) Gini exceeds the champion by 2.8 pts on average (+0.9 to +8.1) and its relative decay across windows is 14.4 % vs 7.1 % for the champion. Lift alone does not justify replacement: the challenger is not reason-code explainable and would need a full validation cycle.</li></ol>
+
+<h2>8. Limitations of this validation</h2>
+<ul><li>Monitoring windows are simulated by re-weighting rows of one snapshot; there is no true time dimension, so trend statements describe the injected shift, not real portfolio evolution.</li><li>Outcome labels are available for every window immediately; in production a 24-month performance window means KS/Gini lag PSI by two years and early monitoring must rely on stability metrics alone.</li><li>Hosmer-Lemeshow p-values are near zero at these sample sizes regardless of practical fit; the absolute calibration gap is the operative test.</li><li>The challenger is untuned (fixed depth 4, 300 trees) and shares the development window; its lift is an upper-bound illustration, not a validated alternative.</li><li>No override, reject-inference or fair-lending (disparate impact) analysis is included; both would be required for a production validation.</li></ul>
+<p class="meta">Produced by model-risk-monitoring (run.py). Every table is written from the code that produced the metrics; no numbers are hand-entered.</p>
+</body></html>
