@@ -1,0 +1,48 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Model Validation Report - {{ model_name }}</title>
+<style>
+body{font:14px/1.5 -apple-system,Segoe UI,Helvetica,Arial,sans-serif;max-width:1100px;margin:32px auto;padding:0 24px;color:#1b1b1b}
+h1{font-size:24px;margin-bottom:4px} h2{font-size:18px;margin-top:32px;border-bottom:1px solid #ddd;padding-bottom:4px} h3{font-size:15px}
+table{border-collapse:collapse;margin:10px 0;font-size:13px} th,td{border:1px solid #ddd;padding:5px 9px;text-align:right} th{background:#f4f4f4} td:first-child,th:first-child{text-align:left}
+.GREEN{background:#d9f2d9} .AMBER{background:#fff1c2} .RED{background:#ffd6d6}
+.meta{color:#666;font-size:13px} .box{border:1px solid #ddd;border-radius:6px;padding:12px 16px;background:#fafafa;margin:12px 0}
+img{max-width:100%;border:1px solid #eee;margin:8px 0}
+</style></head><body>
+<h1>Model Validation & Monitoring Report</h1>
+<div class="meta">{{ model_name }} · generated {{ generated }} · development sample n={{ dev_n }} · monitoring windows: {{ windows|join(', ') }}</div>
+<div class="box"><b>Overall assessment: <span class="{{ overall_rag }}">{{ overall_rag }}</span></b><br>{{ overall_text }}</div>
+
+<h2>1. Model purpose and scope (SR 11-7 §III)</h2>
+<p>{{ purpose }}</p>
+
+<h2>2. Conceptual soundness</h2>
+<p>{{ soundness }}</p>
+<h3>Information value by characteristic (development sample)</h3>{{ iv_table }}
+<h3>Scorecard points</h3>{{ points_table }}
+
+<h2>3. Ongoing monitoring - performance by window</h2>
+<p>KS &ge; {{ thr.ks_min }} and a Gini drop below {{ (thr.gini_drop_amber*100)|int }} % of development are GREEN; PSI &lt; {{ thr.psi_green }} GREEN, {{ thr.psi_green }}-{{ thr.psi_amber }} AMBER, above RED; |actual − predicted| default rate &le; {{ (thr.calibration_max_abs_gap*100)|round(1) }} pp GREEN.</p>
+{{ perf_table }}
+<img src="performance.png" alt="KS / Gini by window">
+
+<h2>4. Population stability (PSI of the score) and characteristic stability (CSI)</h2>
+<img src="psi.png" alt="PSI by window">
+{{ csi_table }}
+<img src="score_bands.png" alt="Score band mix by window">
+
+<h2>5. Calibration</h2>
+<p>Predicted vs actual default rate by score decile, per window. Hosmer-Lemeshow p-values are reported but with tens of thousands of rows per window the test rejects on tiny gaps, so the absolute gap is the operative check.</p>
+<img src="calibration.png" alt="Calibration">
+{{ cal_table }}
+
+<h2>6. Champion vs challenger</h2>
+<p>{{ challenger_text }}</p>
+{{ cc_table }}
+<h3>Challenger feature importance</h3>{{ imp_table }}
+
+<h2>7. Findings and recommended actions</h2>
+<ol>{% for f in findings %}<li><b>{{ f.severity }}</b> - {{ f.text }}</li>{% endfor %}</ol>
+
+<h2>8. Limitations of this validation</h2>
+<ul>{% for l in limitations %}<li>{{ l }}</li>{% endfor %}</ul>
+<p class="meta">Produced by model-risk-monitoring (run.py). Every table is written from the code that produced the metrics; no numbers are hand-entered.</p>
+</body></html>

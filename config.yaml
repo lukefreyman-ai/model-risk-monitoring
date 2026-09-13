@@ -1,0 +1,41 @@
+# model-risk-monitoring configuration
+data:
+  path: data/cs-training.csv        # Kaggle "Give Me Some Credit" training file (login required to download)
+  target: SeriousDlqin2yrs
+  seed: 42
+
+# Simulated monitoring windows. The dataset has no dates, so rows are assigned to windows with a controlled
+# covariate shift so that PSI/CSI have something to detect (see README - this is a simulation, labelled as such).
+windows:
+  n_windows: 6                      # window 0 = development sample, 1..5 = monitoring quarters
+  labels: [dev, Q1, Q2, Q3, Q4, Q5]
+  drift:                            # per-window tilt exponents / multipliers used to thin windows 1..5 (1.0 = no shift)
+    utilization_tilt: [1.0, 1.0, 1.3, 1.8, 2.6, 3.4]       # later windows over-sample high-utilization applicants
+    age_tilt:         [1.0, 1.0, 0.9, 0.7, 0.5, 0.3]       # ... and younger ones (a shift toward thin-file / digital acquisition)
+    bad_rate_tilt:    [1.0, 1.0, 1.0, 1.0, 1.15, 1.35]     # ... and, in the last two windows, a macro deterioration in outcomes
+
+thresholds:                          # common industry rules of thumb, cited in the report
+  psi_green: 0.10
+  psi_amber: 0.25
+  csi_amber: 0.10
+  ks_min: 0.30
+  gini_drop_amber: 0.10             # relative drop vs development
+  calibration_max_abs_gap: 0.02     # |actual - predicted| default rate, per window
+  hl_pvalue_min: 0.05
+
+scorecard:
+  base_score: 600
+  base_odds: 50
+  pdo: 20
+  features:                          # binning as in credit-risk-scorecard (Give Me Some Credit)
+    RevolvingUtilizationOfUnsecuredLines: {bins: [-0.001, 0.1, 0.3, 0.5, 0.7, 0.9, 1.0, 1000000000], name: util}
+    age: {bins: [-1, 30, 35, 40, 45, 50, 55, 60, 65, 120], name: age}
+    NumberOfTime30-59DaysPastDueNotWorse: {bins: [-1, 0, 1, 2, 98], name: late30}
+    DebtRatio: {bins: [-0.001, 0.2, 0.4, 0.6, 1.0, 1000000000], name: debtratio}
+    MonthlyIncome: {bins: [-1, 2500, 4500, 6500, 9000, 13000, 1000000000], name: income, fill: -1}
+    NumberOfTimes90DaysLate: {bins: [-1, 0, 1, 2, 98], name: late90}
+    NumberOfTime60-89DaysPastDueNotWorse: {bins: [-1, 0, 1, 98], name: late60}
+
+challenger:
+  n_estimators: 300
+  max_depth: 4
